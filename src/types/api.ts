@@ -22,10 +22,12 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  phone: string;
+  phoneNumber: string;
+  cinNumber: string;
 }
 
 export interface AuthResponse {
+  access_token: string;
   user: User;
   token: string;
 }

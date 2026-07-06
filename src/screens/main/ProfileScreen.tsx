@@ -74,7 +74,7 @@ const ProfileScreen: React.FC<MainTabScreenProps<'Profile'>> = ({ navigation }) 
         </Text>
         <Text style={styles.email}>{user.email}</Text>
         <View style={styles.ratingContainer}>
-          <Text style={styles.rating}>⭐ {user.rating.toFixed(1)}</Text>
+            <Text>{(user?.rating ?? 0).toFixed(1)}</Text>
           {user.isVerified && (
             <Text style={styles.verified}>✓ Vérifié</Text>
           )}

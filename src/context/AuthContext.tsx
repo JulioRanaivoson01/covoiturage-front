@@ -7,7 +7,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, firstName: string, lastName: string, phone: string) => Promise<void>;
+  register: (email: string, password: string, firstName: string, lastName: string, phone: string, cinNumber: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
 }
@@ -51,7 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     password: string,
     firstName: string,
     lastName: string,
-    phone: string
+    phone: string,
+    cinNumber: string
   ) => {
     try {
       const response = await authService.register({
@@ -59,8 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
         firstName,
         lastName,
-        phone,
+        phoneNumber: phone,
+        cinNumber,
       });
+
       setUser(response.user);
     } catch (error) {
       console.error('Register error:', error);

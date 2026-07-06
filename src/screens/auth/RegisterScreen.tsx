@@ -13,22 +13,26 @@ import { AuthScreenProps } from '../../types/navigation';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import authService from '@/api/services/auth.service';
 
 const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigation }) => {
+  const { register } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
+  const [cinNumber, setCinNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     firstName?: string;
     lastName?: string;
-    phone?: string;
+    phoneNumber?: string;
+    cinNumber?: string;
   }>({});
-  const { register } = useAuth();
 
   const validateForm = () => {
     const newErrors: any = {};
@@ -54,28 +58,32 @@ const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigation }) =
     }
     
     if (!phone) {
-      newErrors.phone = 'Téléphone est requis';
+      newErrors.phoneNumber = 'Téléphone est requis';
     } else if (!/^[0-9]{10}$/.test(phone)) {
-      newErrors.phone = 'Numéro de téléphone invalide (10 chiffres)';
+      newErrors.phoneNumber = 'Numéro de téléphone invalide (10 chiffres)';
     }
-    
+
+    if (!cinNumber) {
+      newErrors.cinNumber = 'Numéro CIN est requis';
+    } else if (!/^[0-9]{12}$/.test(cinNumber)) {
+      newErrors.cinNumber = 'Numéro CIN invalide (12 chiffres)';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleRegister = async () => {
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      await register(email, password, firstName, lastName, phone);
-      // Navigation will be handled by the auth state change
-    } catch (error: any) {
-      Alert.alert('Erreur', error.response?.data?.message || 'Échec de l\'inscription');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    await authService.register(FormData);
+    
+    // 🌟 Affiche un message de succès et redirige vers le Login
+    Alert.alert("Succès", "Votre compte a été créé ! Connectez-vous.");
+    navigation.navigate('Login'); 
+  } catch (error) {
+    Alert.alert("Erreur", "L'inscription a échoué.");
+  }
+};
 
   return (
     <KeyboardAvoidingView
@@ -117,11 +125,20 @@ const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigation }) =
 
           <Input
             label="Téléphone"
-            placeholder="0612345678"
+            placeholder="0341234567"
             value={phone}
             onChangeText={setPhone}
             keyboardType="phone-pad"
-            error={errors.phone}
+            error={errors.phoneNumber}
+          />
+
+          <Input
+            label="Numéro CIN"
+            placeholder="12 chiffres"
+            value={cinNumber}
+            onChangeText={setCinNumber}
+            keyboardType="numeric"
+            error={errors.cinNumber}
           />
 
           <Input
