@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -59,6 +60,39 @@ const MyRidesScreen: React.FC<MainTabScreenProps<'MyRides'>> = () => {
     console.log('Ride pressed:', ride.id);
   };
 
+  const handleEditRide = (ride: Ride) => {
+    // Pour l'instant, on log l'ID. TODO: Naviguer vers PublishScreen avec les données du trajet
+    console.log('Edit ride:', ride.id);
+    Alert.alert('Info', 'La fonction d\'édition sera bientôt disponible.');
+  };
+
+  const handleDeleteRide = (ride: Ride) => {
+    Alert.alert(
+      'Supprimer le trajet',
+      'Êtes-vous sûr de vouloir supprimer ce trajet ? Cette action est irréversible.',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await ridesService.cancelRide(ride.id);
+              // Recharger la liste après suppression
+              loadData();
+            } catch (error) {
+              console.error('Erreur lors de la suppression:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer le trajet.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderPublishedRides = () => {
     if (myRides.length === 0) {
       return (
@@ -80,6 +114,8 @@ const MyRidesScreen: React.FC<MainTabScreenProps<'MyRides'>> = () => {
           <RideCard
             ride={item}
             onPress={() => handleRidePress(item)}
+            onEdit={() => handleEditRide(item)}
+            onDelete={() => handleDeleteRide(item)}
           />
         )}
         showsVerticalScrollIndicator={false}

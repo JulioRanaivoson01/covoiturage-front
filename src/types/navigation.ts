@@ -12,7 +12,7 @@ export type AuthStackParamList = {
 // Main Tabs Param List
 export type MainTabsParamList = {
   Search: NavigatorScreenParams<SearchStackParamList>;
-  Publish: undefined;
+  Publish: { rideId?: string } | undefined;
   MyRides: undefined;
   Profile: undefined;
 };

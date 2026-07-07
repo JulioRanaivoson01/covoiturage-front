@@ -29,7 +29,12 @@ class RidesService {
   }
 
   async cancelRide(rideId: string): Promise<void> {
-    await apiClient.patch(`/rides/${rideId}/cancel`);
+    await apiClient.delete(`/rides/${rideId}`);
+  }
+
+  async updateRide(rideId: string, rideData: CreateRideRequest): Promise<Ride> {
+    const response = await apiClient.patch<ApiResponse<Ride>>(`/rides/${rideId}`, rideData);
+    return response.data.data;
   }
 
   async getAvailableRides(): Promise<Ride[]> {

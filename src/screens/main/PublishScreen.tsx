@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,8 +23,10 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
-const PublishScreen: React.FC<MainTabScreenProps<'Publish'>> = ({ navigation }) => {
+const PublishScreen: React.FC<MainTabScreenProps<'Publish'>> = ({ navigation, route }) => {
   const { user } = useAuth();
+  const { rideId } = route.params || {};
+  const [isEditMode, setIsEditMode] = useState(!!rideId);
   const [step, setStep] = useState(1);
   const [carImage, setCarImage] = useState<string | null>(null);
 
@@ -142,14 +144,14 @@ setIsLoading(true);
     try {
       let uploadedImageUrl: string | null = null;
       
-      if (carImageUri) {
-        try {
-          uploadedImageUrl = await ridesService.uploadCarImage(carImageUri);
-        } catch (uploadError) {
-          console.warn('Upload image échoué (endpoint backend non configuré), poursuite sans image:', uploadError);
-          // On continue sans image car le backend endpoint n'existe pas encore
-        }
-      }
+      // Temporairement désactivé : l'upload d'image nécessite le endpoint backend /uploads/car-image
+      // if (carImageUri) {
+      //   try {
+      //     uploadedImageUrl = await ridesService.uploadCarImage(carImageUri);
+      //   } catch (uploadError) {
+      //     console.warn('Upload image échoué (endpoint backend non configuré), poursuite sans image:', uploadError);
+      //   }
+      // }
 
       const rideData = {
         departure,
@@ -158,7 +160,6 @@ setIsLoading(true);
         pricePerSeat: parseFloat(price) || 0,
         totalSeats: parseInt(totalSeats, 10),
         carModel: typeof carModel !== 'undefined' ? carModel : 'Véhicule non spécifié',
-        carImageUri: uploadedImageUrl || undefined,
         
         luggageAllowed: luggage ? 'small' : 'none',
         
