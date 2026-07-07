@@ -8,16 +8,13 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useAuth } from '../../context/AuthContext';
 import { AuthScreenProps } from '../../types/navigation';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import authService from '@/api/services/auth.service';
+import authService from '../../api/services/auth.service';
 
 const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigation }) => {
-  const { register } = useAuth();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -74,16 +71,54 @@ const RegisterScreen: React.FC<AuthScreenProps<'Register'>> = ({ navigation }) =
   };
 
   const handleRegister = async () => {
-  try {
-    await authService.register(FormData);
-    
-    // 🌟 Affiche un message de succès et redirige vers le Login
-    Alert.alert("Succès", "Votre compte a été créé ! Connectez-vous.");
-    navigation.navigate('Login'); 
-  } catch (error) {
-    Alert.alert("Erreur", "L'inscription a échoué.");
-  }
-};
+    if (!validateForm()) return;
+
+    try {
+      setIsLoading(true);
+      setErrors({});
+
+      // Appel direct au service d'inscription sans connexion automatique
+      await authService.register({
+        email,
+        password,
+        firstName,
+        lastName,
+        phoneNumber: phone,
+        cinNumber,
+      });
+
+      console.log('Inscription réussie !');
+
+      // Afficher un message de succès et rediriger vers l'écran de connexion
+      Alert.alert(
+        'Succès',
+        'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Login'),
+          },
+        ]
+      );
+
+    } catch (error: any) {
+      console.error('Register error details:', error);
+
+      // Handle server errors (ex: Email déjà existant, validation errors)
+      let errorMessage = error.response?.data?.message || error.message || "Une erreur est survenue lors de l'inscription.";
+
+      // Handle specific 401 errors from register endpoint (backend validation errors)
+      if (error.response?.status === 401 && errorMessage.includes('CIN')) {
+        errorMessage = "Ce numéro CIN existe déjà. Veuillez utiliser un autre numéro.";
+      } else if (error.response?.status === 401 && errorMessage.includes('email')) {
+        errorMessage = "Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.";
+      }
+
+      Alert.alert('Erreur', Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView

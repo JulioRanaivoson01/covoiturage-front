@@ -26,36 +26,31 @@ async login(credentials: LoginRequest): Promise<AuthResponse> {
   return authData;
 }
 
-// Dans ton fichier auth.service.ts côté FRONTEND, à l'intérieur de la classe :
-async register(userData: any): Promise<any> {
-  try {
-    let payload: any = {};
+ async register(userData: RegisterRequest): Promise<AuthResponse> {
+    console.log('Register payload:', JSON.stringify(userData));
 
-    // 🌟 Technique ultime pour React Native : extraire les données depuis _parts
-    if (userData && userData._parts) {
-      userData._parts.forEach(([key, value]: [string, any]) => {
-        // Si c'est le numéro de téléphone, on s'assure d'alimenter 'phoneNumber'
-        if (key === 'phone' || key === 'phoneNumber') {
-          payload['phoneNumber'] = value;
-        } else {
-          payload[key] = value;
-        }
-      });
-    } else if (typeof userData === 'object') {
-      payload = userData;
+    const response = await apiClient.post<ApiResponse<AuthResponse>>('/auth/register', userData);
+
+    console.log('Register response status:', response.status);
+    console.log('Register response data:', JSON.stringify(response.data));
+
+    // Handle both response structures: { data: { user, token } } or { user, token }
+    const authData = (response.data as any).data || response.data;
+
+    console.log('Extracted authData:', JSON.stringify(authData));
+
+    // Handle both access_token and token field names
+    const token = authData.access_token || authData.token;
+
+    if (!authData || !token) {
+      throw new Error('Invalid response from server: missing token');
     }
 
-    // Ce log va ENFIN te montrer l'objet JSON propre (ex: { email: "...", password: "..." })
-    console.log("=== VRAI PAYLOAD JSON EXTRAIT ===", payload);
+    // NE PAS stocker le token et l'utilisateur après inscription
+    // L'utilisateur doit se connecter manuellement
 
-    const response = await apiClient.post('/auth/register', payload);
-    
-    const authData = response.data?.data || response.data; 
-    return authData; 
-  } catch (error) {
-    throw error;
+    return authData;
   }
-}
   async uploadCIN(userId: string, photoUri: string): Promise<void> {
     const formData = new FormData();
     formData.append('file', {
