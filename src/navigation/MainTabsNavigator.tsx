@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+// 🎨 Import des icônes officielles pour le style Instagram
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { MainTabsParamList } from '../types/navigation';
 import SearchNavigator from './SearchNavigator';
 import PublishScreen from '../screens/main/PublishScreen';
@@ -14,19 +15,20 @@ const MainTabsNavigator: React.FC = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#3B82F6',
-        tabBarInactiveTintColor: '#9CA3AF',
+        // Couleurs Instagram : Noir pur si actif, gris clair si inactif
+        tabBarActiveTintColor: '#262626',
+        tabBarInactiveTintColor: '#8e8e8e',
+        // Style Instagram : Pas de texte sous les icônes pour un look épuré
+        tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
+          backgroundColor: '#FFFFFF', // Blanc pur
+          borderTopWidth: 0.5,       // Ligne de séparation très fine
+          borderTopColor: '#dbdbdb',   // Gris clair Instagram
+          height: 54,                 // Plus fin et compact
+          paddingBottom: 0,
+          paddingTop: 0,
+          elevation: 0,               // Supprime l'ombre lourde sur Android
+          shadowOpacity: 0,           // Supprime l'ombre lourde sur iOS
         },
       }}
     >
@@ -34,9 +36,13 @@ const MainTabsNavigator: React.FC = () => {
         name="Search"
         component={SearchNavigator}
         options={{
-          tabBarLabel: 'Rechercher',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name="search" color={color} icon="🔍" />
+          tabBarIcon: ({ color, focused }) => (
+            <Feather 
+              name="search" 
+              size={24} 
+              color={color} 
+              style={{ fontWeight: focused ? '700' : '400' }} 
+            />
           ),
         }}
       />
@@ -44,9 +50,13 @@ const MainTabsNavigator: React.FC = () => {
         name="Publish"
         component={PublishScreen}
         options={{
-          tabBarLabel: 'Publier',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name="publish" color={color} icon="➕" />
+          tabBarIcon: ({ color, focused }) => (
+            // Utilisation du carré "plus" style création de post Instagram
+            <Feather 
+              name={focused ? "plus-square" : "plus-square"} 
+              size={24} 
+              color={color} 
+            />
           ),
         }}
       />
@@ -54,9 +64,14 @@ const MainTabsNavigator: React.FC = () => {
         name="MyRides"
         component={MyRidesScreen}
         options={{
-          tabBarLabel: 'Mes Trajets',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name="myrides" color={color} icon="🚗" />
+          tabBarIcon: ({ color, focused }) => (
+            // L'icône de voiture Feather s'intègre parfaitement au style filaire
+            <Feather 
+              name="truck" 
+              size={24} 
+              color={color} 
+              style={{ opacity: focused ? 1 : 0.8 }}
+            />
           ),
         }}
       />
@@ -64,19 +79,17 @@ const MainTabsNavigator: React.FC = () => {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Profil',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name="profile" color={color} icon="👤" />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons 
+              name={focused ? "person" : "person-outline"} 
+              size={24} 
+              color={color} 
+            />
           ),
         }}
       />
     </Tab.Navigator>
   );
-};
-
-// Simple tab icon component using emoji
-const TabIcon: React.FC<{ name: string; color: string; icon: string }> = ({ icon }) => {
-  return <Text style={{ fontSize: 24 }}>{icon}</Text>;
 };
 
 export default MainTabsNavigator;

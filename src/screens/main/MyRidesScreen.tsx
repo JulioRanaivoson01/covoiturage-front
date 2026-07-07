@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
+  FlatList,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { Feather } from '@expo/vector-icons';
 import { MainTabScreenProps } from '../../types/navigation';
 import { Ride, Booking } from '../../types/api';
 import ridesService from '../../api/services/rides.service';
@@ -21,95 +23,131 @@ const MyRidesScreen: React.FC<MainTabScreenProps<'MyRides'>> = () => {
 
   const loadData = async () => {
     setIsLoading(true);
-    try {
-      const [rides, bookings] = await Promise.all([
-        ridesService.getMyRides(),
-        bookingsService.getMyBookings(),
-      ]);
-      setMyRides(rides);
-      setMyBookings(bookings);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    
+    // 🛡️ Exécution découplée pour éviter qu'un seul 404 ne bloque tout l'écran
+    await Promise.all([
+      (async () => {
+        try {
+          const rides = await ridesService.getMyRides();
+          setMyRides(rides || []);
+        } catch (error) {
+          console.error('Erreur lors du chargement des trajets publiés (404 ou autre):', error);
+          setMyRides([]);
+        }
+      })(),
+      (async () => {
+        try {
+          const bookings = await bookingsService.getMyBookings();
+          setMyBookings(bookings || []);
+        } catch (error) {
+          console.error('Erreur lors du chargement des réservations (404 ou autre):', error);
+          setMyBookings([]);
+        }
+      })()
+    ]);
+
+    setIsLoading(false);
   };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   const handleRidePress = (ride: Ride) => {
-    // Navigate to ride details if needed
     console.log('Ride pressed:', ride.id);
   };
 
   const renderPublishedRides = () => {
     if (myRides.length === 0) {
       return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Aucun trajet publié</Text>
-          <Text style={styles.emptySubtext}>Publiez votre premier trajet!</Text>
+        <View style={styles.instagramEmptyContainer}>
+          <View style={styles.emptyIconCircle}>
+            <Feather name="plus" size={28} color="#262626" />
+          </View>
+          <Text style={styles.instagramEmptyText}>Aucun trajet publié</Text>
+          <Text style={styles.instagramEmptySubtext}>Les trajets que vous partagez apparaîtront ici.</Text>
         </View>
       );
     }
 
-    return myRides.map((ride) => (
-      <RideCard
-        key={ride.id}
-        ride={ride}
-        onPress={() => handleRidePress(ride)}
+    return (
+      <FlatList
+        data={myRides}
+        keyExtractor={(item) => `ride-${item.id}`}
+        renderItem={({ item }) => (
+          <RideCard
+            ride={item}
+            onPress={() => handleRidePress(item)}
+          />
+        )}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
       />
-    ));
+    );
   };
 
   const renderBookedRides = () => {
     if (myBookings.length === 0) {
       return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Aucune réservation</Text>
-          <Text style={styles.emptySubtext}>Trouvez votre premier trajet!</Text>
+        <View style={styles.instagramEmptyContainer}>
+          <View style={styles.emptyIconCircle}>
+            <Feather name="bookmark" size={26} color="#262626" />
+          </View>
+          <Text style={styles.instagramEmptyText}>Aucune réservation</Text>
+          <Text style={styles.instagramEmptySubtext}>Les trajets que vous réservez apparaîtront ici.</Text>
         </View>
       );
     }
 
-    return myBookings.map((booking) => (
-      <RideCard
-        key={booking.id}
-        ride={booking.ride}
-        onPress={() => handleRidePress(booking.ride)}
+    return (
+      <FlatList
+        data={myBookings}
+        keyExtractor={(item) => `booking-${item.id}`}
+        renderItem={({ item }) => (
+          <RideCard
+            ride={item.ride}
+            onPress={() => handleRidePress(item.ride)}
+          />
+        )}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
       />
-    ));
+    );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.tabs}>
+      {/* ─── ONGLETS STYLE GRILLE PROFIL INSTAGRAM ─── */}
+      <View style={styles.instagramTabs}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'published' && styles.activeTab]}
+          style={[styles.instagramTab, activeTab === 'published' && styles.instagramActiveTab]}
           onPress={() => setActiveTab('published')}
         >
-          <Text
-            style={[styles.tabText, activeTab === 'published' && styles.activeTabText]}
-          >
-            Mes trajets
-          </Text>
+          <Feather 
+            name="grid" 
+            size={22} 
+            color={activeTab === 'published' ? '#262626' : '#8e8e8e'} 
+          />
         </TouchableOpacity>
+        
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'booked' && styles.activeTab]}
+          style={[styles.instagramTab, activeTab === 'booked' && styles.instagramActiveTab]}
           onPress={() => setActiveTab('booked')}
         >
-          <Text
-            style={[styles.tabText, activeTab === 'booked' && styles.activeTabText]}
-          >
-            Mes réservations
-          </Text>
+          <Feather 
+            name="bookmark" 
+            size={22} 
+            color={activeTab === 'booked' ? '#262626' : '#8e8e8e'} 
+          />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      {/* Contenu principal flexible */}
+      <View style={styles.content}>
         {activeTab === 'published' ? renderPublishedRides() : renderBookedRides()}
-      </ScrollView>
+      </View>
 
       <LoadingSpinner visible={isLoading} message="Chargement..." />
     </View>
@@ -119,53 +157,61 @@ const MyRidesScreen: React.FC<MainTabScreenProps<'MyRides'>> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#ffffff',
   },
-  tabs: {
+  instagramTabs: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#dbdbdb',
   },
-  tab: {
+  instagramTab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderBottomWidth: 2,
+    borderBottomWidth: 1.5,
     borderBottomColor: 'transparent',
   },
-  activeTab: {
-    borderBottomColor: '#3B82F6',
-  },
-  tabText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  activeTabText: {
-    color: '#3B82F6',
+  instagramActiveTab: {
+    borderBottomColor: '#262626',
   },
   content: {
+    flex: 1, // Permet à la liste d'occuper tout l'espace disponible sans figer
+  },
+  listContent: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  instagramEmptyContainer: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  emptyContainer: {
     alignItems: 'center',
-    paddingVertical: 60,
+    justifyContent: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 32,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+  emptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#262626',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  instagramEmptyText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#262626',
     marginBottom: 8,
+    letterSpacing: -0.3,
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#6B7280',
+  instagramEmptySubtext: {
+    fontSize: 13,
+    color: '#8e8e8e',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });
 

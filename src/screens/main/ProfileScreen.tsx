@@ -8,6 +8,8 @@ import {
   Image,
   Alert,
 } from 'react-native';
+// 🎨 Import des icônes pour le style Instagram
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { MainTabScreenProps } from '../../types/navigation';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
@@ -18,7 +20,7 @@ const ProfileScreen: React.FC<MainTabScreenProps<'Profile'>> = ({ navigation }) 
   const handleLogout = () => {
     Alert.alert(
       'Déconnexion',
-      'Êtes-vous sûr de vouloir vous déconnecter?',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
       [
         {
           text: 'Annuler',
@@ -40,17 +42,14 @@ const ProfileScreen: React.FC<MainTabScreenProps<'Profile'>> = ({ navigation }) 
   };
 
   const navigateToChat = () => {
-    // Navigate to chat screen
     console.log('Navigate to chat');
   };
 
   const navigateToReviews = () => {
-    // Navigate to reviews screen
     console.log('Navigate to reviews');
   };
 
   const navigateToSettings = () => {
-    // Navigate to settings screen
     console.log('Navigate to settings');
   };
 
@@ -63,78 +62,112 @@ const ProfileScreen: React.FC<MainTabScreenProps<'Profile'>> = ({ navigation }) 
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/100' }}
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>
-          {user.firstName} {user.lastName}
-        </Text>
-        <Text style={styles.email}>{user.email}</Text>
-        <View style={styles.ratingContainer}>
-            <Text>{(user?.rating ?? 0).toFixed(1)}</Text>
-          {user.isVerified && (
-            <Text style={styles.verified}>✓ Vérifié</Text>
-          )}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informations personnelles</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Téléphone:</Text>
-          <Text style={styles.value}>{user.phone}</Text>
-        </View>
-        {user.cinNumber && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>CIN:</Text>
-            <Text style={styles.value}>{user.cinNumber}</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      
+      {/* ─── EN-TÊTE STYLE PROFIL INSTAGRAM ─── */}
+      <View style={styles.profileHeaderContainer}>
+        <View style={styles.profileRow}>
+          {/* Photo de profil avec bordure fine */}
+          <View style={styles.avatarContainer}>
+            <Image
+              source={{ uri: 'https://via.placeholder.com/150' }}
+              style={styles.avatar}
+            />
           </View>
-        )}
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Membre depuis:</Text>
-          <Text style={styles.value}>
-            {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-          </Text>
-        </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actions</Text>
-        <TouchableOpacity style={styles.actionItem} onPress={navigateToChat}>
-          <Text style={styles.actionText}>💬 Messagerie</Text>
-          <Text style={styles.actionArrow}>→</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionItem} onPress={navigateToReviews}>
-          <Text style={styles.actionText}>⭐ Mes avis</Text>
-          <Text style={styles.actionArrow}>→</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionItem} onPress={navigateToSettings}>
-          <Text style={styles.actionText}>⚙️ Paramètres</Text>
-          <Text style={styles.actionArrow}>→</Text>
-        </TouchableOpacity>
+          {/* Statistiques en ligne (Style Instagram Posts/Followers) */}
+          <View style={styles.statsContainer}>
+            <TouchableOpacity style={styles.statBox} onPress={navigateToReviews}>
+              <Text style={styles.statNumber}>{(user?.rating ?? 0).toFixed(1)}</Text>
+              <Text style={styles.statLabel}>Note</Text>
+            </TouchableOpacity>
+            
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>—</Text>
+              <Text style={styles.statLabel}>Trajets</Text>
+            </View>
+
+            <View style={styles.statBox}>
+              <View style={styles.verifiedRow}>
+                {user.isVerified ? (
+                  <Ionicons name="checkmark-circle" size={18} color="#0095f6" />
+                ) : (
+                  <Text style={styles.statNumber}>Actif</Text>
+                )}
+              </View>
+              <Text style={styles.statLabel}>Statut</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Informations textuelles (Bio du profil) */}
+        <View style={styles.bioContainer}>
+          <Text style={styles.name}>
+            {user.firstName} {user.lastName}
+          </Text>
+          <Text style={styles.email}>{user.email}</Text>
+          <Text style={styles.bioText}>🇲🇬 Membre depuis le {new Date(user.createdAt).toLocaleDateString('fr-FR')}</Text>
+        </View>
+
+        {/* Bouton secondaire gris pour Modifier / Gérer l'identité */}
         {!user.cinPhoto && (
-          <TouchableOpacity
-            style={styles.actionItem}
-            onPress={() => {
-              // Navigate to CIN upload - requires proper navigation setup
-              console.log('Navigate to CIN upload for user:', user.id);
-            }}
+          <TouchableOpacity 
+            style={styles.instagramSecondaryButton}
+            onPress={() => console.log('Navigate to CIN upload for user:', user.id)}
           >
-            <Text style={styles.actionText}>📷 Vérifier mon identité</Text>
-            <Text style={styles.actionArrow}>→</Text>
+            <Text style={styles.secondaryButtonText}>Vérifier mon identité (CIN)</Text>
           </TouchableOpacity>
         )}
       </View>
 
+      {/* ─── INFOS COMPLÉMENTAIRES DISCRÈTES ─── */}
+      <View style={styles.metaInfoSection}>
+        <View style={styles.metaRow}>
+          <Feather name="phone" size={14} color="#65676B" style={styles.metaIcon} />
+          <Text style={styles.metaText}>{user.phone}</Text>
+        </View>
+        {user.cinNumber && (
+          <View style={styles.metaRow}>
+            <Feather name="credit-card" size={14} color="#65676B" style={styles.metaIcon} />
+            <Text style={styles.metaText}>CIN: {user.cinNumber}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* ─── LISTE D'ACTIONS MODERNES (STYLE RÉGLAGES INSTAGRAM) ─── */}
+      <View style={styles.actionSection}>
+        <TouchableOpacity style={styles.actionItem} onPress={navigateToChat}>
+          <View style={styles.actionLeftRow}>
+            <Feather name="message-circle" size={22} color="#262626" style={styles.actionIcon} />
+            <Text style={styles.actionText}>Messagerie</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color="#dbdbdb" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionItem} onPress={navigateToReviews}>
+          <View style={styles.actionLeftRow}>
+            <Feather name="star" size={22} color="#262626" style={styles.actionIcon} />
+            <Text style={styles.actionText}>Mes avis</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color="#dbdbdb" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.actionItem} onPress={navigateToSettings}>
+          <View style={styles.actionLeftRow}>
+            <Feather name="settings" size={22} color="#262626" style={styles.actionIcon} />
+            <Text style={styles.actionText}>Paramètres de l'application</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color="#dbdbdb" />
+        </TouchableOpacity>
+      </View>
+
+      {/* ─── BOUTON ROUGE INSTAGRAM POUR DÉCONNEXION ─── */}
       <View style={styles.footer}>
         <Button
           title="Se déconnecter"
           onPress={handleLogout}
-          variant="danger"
-          size="large"
+          style={styles.instagramDangerButton}
+          textStyle={styles.instagramButtonText}
         />
       </View>
     </ScrollView>
@@ -144,99 +177,163 @@ const ProfileScreen: React.FC<MainTabScreenProps<'Profile'>> = ({ navigation }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#ffffff', // Blanc pur Instagram
   },
-  header: {
-    backgroundColor: '#FFFFFF',
+  profileHeaderContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#dbdbdb',
+  },
+  profileRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 32,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    justifyContent: 'space-between',
+  },
+  avatarContainer: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    borderWidth: 1,
+    borderColor: '#dbdbdb',
+    padding: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 16,
+    width: '100%',
+    height: '100%',
+    borderRadius: 40,
+  },
+  statsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginLeft: 20,
+  },
+  statBox: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#262626',
+  },
+  verifiedRow: {
+    height: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#262626',
+    marginTop: 2,
+  },
+  bioContainer: {
+    marginTop: 14,
+    paddingHorizontal: 4,
   },
   name: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 4,
+    color: '#262626',
   },
   email: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 8,
+    fontSize: 13,
+    color: '#8e8e8e',
+    marginTop: 1,
   },
-  ratingContainer: {
+  bioText: {
+    fontSize: 13,
+    color: '#262626',
+    marginTop: 4,
+  },
+  /* Bouton secondaire gris type Instagram */
+  instagramSecondaryButton: {
+    backgroundColor: '#efefef',
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  secondaryButtonText: {
+    color: '#262626',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  /* Section Meta discrète */
+  metaInfoSection: {
+    backgroundColor: '#fafafa',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#dbdbdb',
+    flexDirection: 'row',
+    gap: 16,
+  },
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  rating: {
-    fontSize: 16,
-    color: '#F59E0B',
-    fontWeight: '600',
+  metaIcon: {
+    marginRight: 6,
   },
-  verified: {
-    fontSize: 14,
-    color: '#10B981',
-    marginLeft: 8,
-    fontWeight: '600',
+  metaText: {
+    fontSize: 12,
+    color: '#65676B',
   },
-  section: {
-    backgroundColor: '#FFFFFF',
-    marginTop: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    color: '#6B7280',
-    width: 120,
-  },
-  value: {
-    fontSize: 14,
-    color: '#1F2937',
-    fontWeight: '500',
-    flex: 1,
+  /* Liste d'actions */
+  actionSection: {
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
   actionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#efefef',
+  },
+  actionLeftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionIcon: {
+    marginRight: 14,
+    width: 24,
+    textAlign: 'center',
   },
   actionText: {
-    fontSize: 16,
-    color: '#1F2937',
+    fontSize: 14,
+    color: '#262626',
   },
-  actionArrow: {
-    fontSize: 20,
-    color: '#9CA3AF',
-  },
+  /* Pied de page et Bouton Déconnexion */
   footer: {
-    padding: 16,
-    marginTop: 16,
+    paddingHorizontal: 16,
+    marginTop: 32,
+    marginBottom: 40,
+  },
+  instagramDangerButton: {
+    backgroundColor: '#dc2626',
+    height: 44,
+    borderRadius: 8,
+    justifyContent: 'center',
+    borderWidth: 0,
+  },
+  instagramButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   errorText: {
-    fontSize: 18,
-    color: '#EF4444',
+    fontSize: 16,
+    color: '#dc2626',
     textAlign: 'center',
     marginTop: 40,
+    fontWeight: '600',
   },
 });
 

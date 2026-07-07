@@ -34,28 +34,32 @@ export interface AuthResponse {
 
 // Ride Types
 export interface Ride {
+  luggage: any;
+  status: string;
   id: string;
-  driverId: string;
-  driver: User;
   departure: string;
   arrival: string;
-  departureDate: string;
-  price: number;
-  availableSeats: number;
+  departureTime: string;
   totalSeats: number;
-  luggage: boolean;
+  availableSeats: number;
+  carModel: string;
+  luggageAllowed: string;
   description?: string;
-  status: 'active' | 'completed' | 'cancelled';
-  createdAt: string;
+  
+  // 🌟 MODIFICATION ICI : Aligner le nom avec le backend
+  pricePerSeat: number; 
+  driver?: any;
+  carImageUri?: string;
 }
-
+// À modifier dans ton fichier de types frontend
 export interface CreateRideRequest {
   departure: string;
   arrival: string;
-  departureDate: string;
-  price: number;
+  departureTime: string;      // Mis à jour
+  pricePerSeat: number;       // Mis à jour
   totalSeats: number;
-  luggage: boolean;
+  carModel: string;           // Ajouté
+  luggageAllowed?: any;       // Aligne-le selon ton Enum ou laisse en string/any temporairement
   description?: string;
 }
 

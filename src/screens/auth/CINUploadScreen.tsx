@@ -19,26 +19,20 @@ const CINUploadScreen: React.FC<AuthScreenProps<'CINUpload'>> = ({ route, naviga
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Accès à la galerie nécessaire');
-      return;
-    }
+  
+const pickImage = async () => {
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'] as any,
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+  });
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [3, 2],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
-
+  if (!result.canceled && result.assets && result.assets.length > 0) {
+    setPhotoUri(result.assets[0].uri);
+    console.log("Image sélectionnée :", result.assets[0].uri);
+  }
+};
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     
@@ -82,11 +76,10 @@ const CINUploadScreen: React.FC<AuthScreenProps<'CINUpload'>> = ({ route, naviga
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      {/* ... (Le reste du JSX reste identique) */}
       <View style={styles.header}>
         <Text style={styles.title}>Vérification d'identité</Text>
-        <Text style={styles.subtitle}>
-          Téléchargez une photo de votre carte d'identité nationale
-        </Text>
+        <Text style={styles.subtitle}>Téléchargez une photo de votre carte d'identité nationale</Text>
       </View>
 
       <View style={styles.content}>
@@ -102,36 +95,12 @@ const CINUploadScreen: React.FC<AuthScreenProps<'CINUpload'>> = ({ route, naviga
         </TouchableOpacity>
 
         <View style={styles.buttonGroup}>
-          <Button
-            title="Prendre une photo"
-            onPress={takePhoto}
-            variant="secondary"
-            size="medium"
-          />
-          <Button
-            title="Choisir dans la galerie"
-            onPress={pickImage}
-            variant="outline"
-            size="medium"
-          />
+          <Button title="Prendre une photo" onPress={takePhoto} variant="secondary" size="medium" />
+          <Button title="Choisir dans la galerie" onPress={pickImage} variant="outline" size="medium" />
         </View>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>Instructions:</Text>
-          <Text style={styles.infoText}>• Assurez-vous que la photo est claire</Text>
-          <Text style={styles.infoText}>• Tous les détails doivent être visibles</Text>
-          <Text style={styles.infoText}>• Évitez les reflets et flous</Text>
-        </View>
-
-        <Button
-          title="Télécharger"
-          onPress={handleUpload}
-          size="large"
-          disabled={!photoUri}
-          loading={isLoading}
-        />
+        <Button title="Télécharger" onPress={handleUpload} size="large" disabled={!photoUri} loading={isLoading} />
       </View>
-
       <LoadingSpinner visible={isLoading} message="Téléchargement en cours..." />
     </ScrollView>
   );
@@ -217,3 +186,4 @@ const styles = StyleSheet.create({
 });
 
 export default CINUploadScreen;
+
